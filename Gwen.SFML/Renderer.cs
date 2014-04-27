@@ -20,11 +20,12 @@ namespace Gwen.Renderer
 		private RenderTarget _target;
 		private Color _color;
 		private Vector2f _viewScale;
-		//private SFMLTexture m_LastSampled;
-		//private Image m_SampleCache;
 		private RenderStates _renderState;
 		private uint _cacheSize;
 		private readonly Vertex[] _vertices;
+
+		//Some simple caching for text to draw
+		private Text _str;
 
 		public const uint CacheSize = 1024;
 
@@ -46,11 +47,13 @@ namespace Gwen.Renderer
 			var scaled = _target.MapPixelToCoords(new Vector2i(port.Width, port.Height));
 			_viewScale.X = (port.Width/scaled.X)*Scale;
 			_viewScale.Y = (port.Height/scaled.Y)*Scale;
+			_str = new Text ();
 		}
 
 		public override void End()
 		{
 			FlushCache();
+			_str.Dispose ();
 			base.End();
 		}
 
@@ -124,7 +127,6 @@ namespace Gwen.Renderer
 		/// </returns>
 		public override Point MeasureText(Font font, string text)
 		{
-			// todo: cache results, this is slow
 			var sfFont = font.RendererData as SFML.Graphics.Font;
 
 			// If the font doesn't exist, or the font size should be changed
@@ -148,7 +150,6 @@ namespace Gwen.Renderer
 
 			foreach (var cur in text)
 			{
-			    sfFont.GetKerning(prev, cur, (uint)font.RealSize);
 			    prev = cur;
 			    if (cur == '\n' || cur == '\v')
 			        continue;
@@ -177,15 +178,11 @@ namespace Gwen.Renderer
 					text += '\0';
 			}
 
-			var sfText = new Text(text, sfFont)
-			{
-			    Font = sfFont,
-			    Position = new Vector2f(pos.X, pos.Y),
-			    CharacterSize = (uint) font.RealSize,
-			    Color = _color
-			};
-		    _target.Draw(sfText);
-			sfText.Dispose();
+			_str.Font = sfFont;
+			_str.Position = new Vector2f (pos.X, pos.Y);
+			_str.CharacterSize = (uint) font.RealSize;
+			_str.Color = _color;
+			_target.Draw(_str);
 		}
 		
         public override void DrawLine(int x1, int y1, int x2, int y2)
