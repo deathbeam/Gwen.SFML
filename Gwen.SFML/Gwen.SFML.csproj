@@ -34,9 +34,6 @@
     <Reference Include="Gwen">
       <HintPath>..\Lib\Gwen.dll</HintPath>
     </Reference>
-    <Reference Include="sfmlnet-audio-2">
-      <HintPath>..\Lib\sfmlnet-audio-2.dll</HintPath>
-    </Reference>
     <Reference Include="sfmlnet-graphics-2">
       <HintPath>..\Lib\sfmlnet-graphics-2.dll</HintPath>
     </Reference>
@@ -52,7 +49,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Renderer.cs" />
     <Compile Include="Input.cs" />
-    <Compile Include="GuiManager.cs" />
+    <Compile Include="GUIManager.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

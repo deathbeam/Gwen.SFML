@@ -8,14 +8,15 @@ using SFML.Window;
 using Tao.OpenGl;
 using Color = SFML.Graphics.Color;
 using Image = SFML.Graphics.Image;
+using SFMLFont = SFML.Graphics.Font;
 using SFMLTexture = SFML.Graphics.Texture;
 
-namespace Gwen.Renderer
+namespace Gwen.Renderer.SFML
 {
 	/// <summary>
 	/// SFML renderer.
 	/// </summary>
-	public class GuiRenderer : Base, ICacheToTexture
+	public class GwenRenderer : Base, ICacheToTexture
 	{
 		private RenderTarget _target;
 		private Color _color;
@@ -33,11 +34,11 @@ namespace Gwen.Renderer
 		/// Initializes a new instance of the <see cref="SFML"/> class.
 		/// </summary>
 		/// <param name="target">SFML render target.</param>
-		public GuiRenderer(RenderTarget target)
+		public GwenRenderer(RenderTarget target)
 		{
 			_target = target;
 			_vertices = new Vertex[CacheSize];
-			_renderState = new RenderStates(BlendMode.Alpha); // somehow worked without this in previous SFML version (May 9th 2010)
+			_renderState = RenderStates.Default;
 		}
 
 		public override void Begin()
@@ -91,11 +92,9 @@ namespace Gwen.Renderer
 		/// <returns>True if succeeded.</returns>
 		public override bool LoadFont(Font font)
 		{
-			font.RealSize = font.Size*Scale;
+			font.RealSize = font.Size * Scale;
 
-			Debug.Print("LoadFont: {0} {1}", font.FaceName, font.RendererData);
-
-			var sfFont = new SFML.Graphics.Font(font.FaceName);
+			var sfFont = new SFMLFont(font.FaceName);
 			font.RendererData = sfFont;
 
 			return true;
@@ -110,9 +109,7 @@ namespace Gwen.Renderer
 			if ( font.RendererData == null )
 				return;
 
-			Debug.Print("FreeFont: {0} {1}", font.FaceName, font.RendererData);
-
-			var sfFont = font.RendererData as SFML.Graphics.Font;
+			var sfFont = font.RendererData as SFMLFont;
 		    if (sfFont != null) sfFont.Dispose();
 		    font.RendererData = null;
 		}
@@ -127,7 +124,7 @@ namespace Gwen.Renderer
 		/// </returns>
 		public override Point MeasureText(Font font, string text)
 		{
-			var sfFont = font.RendererData as SFML.Graphics.Font;
+			var sfFont = font.RendererData as SFMLFont;
 
 			// If the font doesn't exist, or the font size should be changed
 			if (sfFont == null || Math.Abs(font.RealSize - font.Size * Scale) > 2)
@@ -136,7 +133,7 @@ namespace Gwen.Renderer
 				LoadFont(font);
 			}
 
-			sfFont = font.RendererData as SFML.Graphics.Font;
+			sfFont = font.RendererData as SFMLFont;
 
 			// todo: this is workaround for SFML.Net bug under mono
 			if (Environment.OSVersion.Platform != PlatformID.Win32NT)
@@ -162,7 +159,7 @@ namespace Gwen.Renderer
 		public override void RenderText(Font font, Point pos, string text)
 		{
 			pos = Translate(pos);
-			var sfFont = font.RendererData as SFML.Graphics.Font;
+			var sfFont = font.RendererData as SFMLFont;
 
 			// If the font doesn't exist, or the font size should be changed
 			if (sfFont == null || Math.Abs(font.RealSize - font.Size * Scale) > 2)
@@ -178,6 +175,7 @@ namespace Gwen.Renderer
 					text += '\0';
 			}
 
+			_str.DisplayedString = text;
 			_str.Font = sfFont;
 			_str.Position = new Vector2f (pos.X, pos.Y);
 			_str.CharacterSize = (uint) font.RealSize;
@@ -200,6 +198,7 @@ namespace Gwen.Renderer
 		public override void DrawFilledRect(Rectangle rect)
 		{
 			rect = Translate(rect);
+
 			if (_renderState.Texture != null || _cacheSize + 4 >= CacheSize)
 			{
 				FlushCache();
@@ -215,21 +214,21 @@ namespace Gwen.Renderer
 			_vertices[_cacheSize++] = new Vertex(new Vector2f(rect.X, bottom), _color);  
 		}
 
-		public override void DrawTexturedRect(Texture t, Rectangle targetRect, float u1 = 0, float v1 = 0, float u2 = 1, float v2 = 1)
+		public override void DrawTexturedRect(Texture t, Rectangle rect, float u1 = 0, float v1 = 0, float u2 = 1, float v2 = 1)
 		{
 			var tex = t.RendererData as SFMLTexture;
-			if (null == tex)
+			if (tex == null)
 			{
-				DrawMissingImage(targetRect);
+				DrawMissingImage(rect);
 				return;
 			}
 
-			DrawTexturedRect(tex, targetRect, u1, v1, u2, v2);
+			DrawTexturedRect(tex, rect, u1, v1, u2, v2);
 		}
 
-		protected void DrawTexturedRect(SFMLTexture tex, Rectangle targetRect, float u1 = 0, float v1 = 0, float u2 = 1, float v2 = 1)
+		protected void DrawTexturedRect(SFMLTexture tex, Rectangle rect, float u1 = 0, float v1 = 0, float u2 = 1, float v2 = 1)
 		{
-			var rect = Translate(targetRect);
+			rect = Translate(rect);
 
 			u1 *= tex.Size.X;
 			v1 *= tex.Size.Y;
@@ -255,9 +254,7 @@ namespace Gwen.Renderer
 
 		public override void LoadTexture(Texture texture)
 		{
-			if (null == texture) return;
-
-			Debug.Print("LoadTexture: {0} {1}", texture.Name, texture.RendererData);
+			if (texture == null) return;
 
 			if (texture.RendererData != null) 
 				FreeTexture(texture);
@@ -420,11 +417,10 @@ namespace Gwen.Renderer
 		/// <param name="control">Control to be rendered.</param>
 		public void DrawCachedControlTexture(Control.Base control)
 		{
-			var ri = _rt[control];
-			var rt = _target;
+			var temp = _target;
 			_target = _realRt;
-			DrawTexturedRect(ri.Texture, control.Bounds);
-			_target = rt;
+			DrawTexturedRect(_rt[control].Texture, control.Bounds);
+			_target = temp;
 		}
 
 		/// <summary>
@@ -441,8 +437,7 @@ namespace Gwen.Renderer
 				_rt[control].SetView(view);
 			}
 
-			var ri = _rt[control];
-			ri.Display();
+			_rt[control].Display();
 		}
 
 		public void UpdateControlCacheTexture(Control.Base control)

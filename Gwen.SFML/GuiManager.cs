@@ -1,20 +1,19 @@
 using System.Collections.Generic;
 
-namespace Gwen
+namespace Gwen.Tools
 {
 	/// <summary>
-	/// 
+	/// GUI manager.
 	/// </summary>
-	public static class GuiManager
+	public static class GUIManager
 	{
 		private static readonly Dictionary<string, object> Assets = new Dictionary<string, object>();
 
 		/// <summary>
-		/// 
+		/// Get the specified name.
 		/// </summary>
-		/// <param name="name"></param>
-		/// <typeparam name="T"></typeparam>
-		/// <returns></returns>
+		/// <param name="name">Name.</param>
+		/// <typeparam name="T">The 1st type parameter.</typeparam>
 		public static T Get<T>(string name) where T : class
 		{
 			object result;
@@ -26,21 +25,18 @@ namespace Gwen
 		}
 
 		/// <summary>
-		/// 
+		/// Set the specified name and obj.
 		/// </summary>
-		/// <param name="name"></param>
-		/// <param name="obj"></param>
-		/// <typeparam name="T"></typeparam>
-		/// <returns></returns>
-		public static T Set<T>(string name, object obj) where T : class
+		/// <param name="name">Name.</param>
+		/// <param name="obj">Object.</param>
+		public static void Set(string name, object obj)
 		{
 			if (!Assets.ContainsKey(name))
 				Assets.Add(name, obj);
-			return (T)obj;
 		}
 
 		/// <summary>
-		/// 
+		/// Clear this instance.
 		/// </summary>
 		public static void Clear()
 		{

@@ -3,13 +3,13 @@ using Gwen.Control;
 using SFML.Graphics;
 using SFML.Window;
 
-namespace Gwen.Input
+namespace Gwen.Input.SFML
 {
 	/// <summary>
 	/// Helper class to avoid modifying SFML itself.
 	/// Build it in SFML::RenderWindow.MouseButtonPressed/Released and pass to ProcessMessage.
 	/// </summary>
-	public class SfmlMouseButtonEventArgs : EventArgs
+	public class GwenMouseButtonEventArgs : EventArgs
 	{
 		/// <summary>
 		/// SFML event args.
@@ -21,7 +21,7 @@ namespace Gwen.Input
 		/// </summary>
 		public readonly bool Down;
 
-		public SfmlMouseButtonEventArgs(MouseButtonEventArgs args, bool down)
+		public GwenMouseButtonEventArgs(MouseButtonEventArgs args, bool down)
 		{
 			Args = args;
 			Down = down;
@@ -32,7 +32,7 @@ namespace Gwen.Input
 	/// Helper class to avoid modifying SFML itself.
 	/// Build it in SFML::RenderWindow.KeyPressed/Released and pass to ProcessMessage.
 	/// </summary>
-	public class SfmlKeyEventArgs : EventArgs
+	public class GwenKeyEventArgs : EventArgs
 	{
 		public readonly KeyEventArgs Args;
 
@@ -41,7 +41,7 @@ namespace Gwen.Input
 		/// </summary>
 		public readonly bool Down;
 
-		public SfmlKeyEventArgs(KeyEventArgs args, bool down)
+		public GwenKeyEventArgs(KeyEventArgs args, bool down)
 		{
 			Args = args;
 			Down = down;
@@ -51,7 +51,7 @@ namespace Gwen.Input
 	/// <summary>
 	/// SFML input handler.
 	/// </summary>
-	public class GuiInput
+	public class GwenInput
 	{
 		private Canvas _canvas;
 		private int _mouseX;
@@ -63,7 +63,7 @@ namespace Gwen.Input
 		/// </summary>
 		/// <param name="canvas">Canvas to use.</param>
 		/// <param name="target">Rander target (needed for scaling).</param>
-		public GuiInput(RenderTarget target, Canvas canvas)
+		public GwenInput(RenderTarget target, Canvas canvas)
 		{
 			_canvas = canvas;
 			_target = target;
@@ -141,9 +141,9 @@ namespace Gwen.Input
 				return _canvas.Input_MouseMoved(_mouseX, _mouseY, dx, dy);
 			}
 
-			if (args is SfmlMouseButtonEventArgs)
+			if (args is GwenMouseButtonEventArgs)
 			{
-				var ev = args as SfmlMouseButtonEventArgs;
+				var ev = args as GwenMouseButtonEventArgs;
 				return _canvas.Input_MouseButton((int)ev.Args.Button, ev.Down);
 			}
 
@@ -160,9 +160,9 @@ namespace Gwen.Input
 				return _canvas.Input_Character(ev.Unicode[0]);
 			}
 
-			if (args is SfmlKeyEventArgs)
+			if (args is GwenKeyEventArgs)
 			{
-				var ev = args as SfmlKeyEventArgs;
+				var ev = args as GwenKeyEventArgs;
 
 				if (ev.Args.Control && ev.Args.Alt && ev.Args.Code == Keyboard.Key.LControl)
 					return false; // this is AltGr
